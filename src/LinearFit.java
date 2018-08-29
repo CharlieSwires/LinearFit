@@ -31,8 +31,9 @@ public class LinearFit extends JPanel{
 		public double x,y,t;
 	}
 	static RandomGenerator rand = new JDKRandomGenerator();
-
+	static int SAMPLES=6;
 	private static double NOISE_VALUE = 2.0;
+	List<Point3D> apoints;
 	List<Point3D> points;
 	List<Point3D> ppoints;
 	List<Point3D> vppoints;
@@ -40,7 +41,9 @@ public class LinearFit extends JPanel{
 	JLabel minxl= new JLabel("Noise");;
 	JTextField minx= new JTextField("2",20);;
 	JLabel maxxl = new JLabel("Scale");;
-	JTextField maxx =new JTextField("3",20);
+	JTextField maxx =new JTextField("8",20);
+	JLabel samplesl = new JLabel("Samples");;
+	JTextField samples =new JTextField("6",20);
 	JButton doRender= new JButton("Render");
 	JPanel canvas = new JPanel();
 	JFrame jfrm = new JFrame("Kalman Filter");
@@ -69,11 +72,16 @@ public class LinearFit extends JPanel{
 		for (int i =0;i<points.size();i++) {
 			g.drawLine((int)Math.round(points.get(i).x*max_x)+width/2, (int)Math.round(points.get(i).y*max_x)+height/2, (int)Math.round(ppoints.get(i).x*max_x)+width/2,(int)Math.round(ppoints.get(i).y*max_x)+height/2);
 		}
+		g.setColor(Color.BLACK);
+		for (int i =0;i<points.size();i++) {
+			g.drawLine((int)Math.round(apoints.get(i).x*max_x)+width/2, (int)Math.round(apoints.get(i).y*max_x)+height/2, (int)Math.round(ppoints.get(i).x*max_x)+width/2,(int)Math.round(ppoints.get(i).y*max_x)+height/2);
+		}
 
 	}
 	void doASquare() throws InterruptedException {
 		double tempx,tempy;
 		double tempt;
+		apoints = new ArrayList<Point3D>();
 		points = new ArrayList<Point3D>();
 		ppoints = new ArrayList<Point3D>();
 		vppoints= new ArrayList<Point3D>();
@@ -83,24 +91,36 @@ public class LinearFit extends JPanel{
 		for (int i=0; i < 20;i++) {
 			tempx -= 2.0;
 			tempt += 1.0;
+			Point3D actual = new Point3D();
+			actual.x=tempx;actual.y=tempy;actual.t=tempt;
+			apoints.add(actual);
 			predictAndDraw(addNoise(tempx),addNoise(tempy),tempt);
 
 		}		
 		for (int i=0; i < 20;i++) {
 			tempy -= 2.0;
 			tempt += 1.0;
+			Point3D actual = new Point3D();
+			actual.x=tempx;actual.y=tempy;actual.t=tempt;
+			apoints.add(actual);
 			predictAndDraw(addNoise(tempx),addNoise(tempy),tempt);
 
 		}		
 		for (int i=0; i < 20;i++) {
 			tempx += 2.0;
 			tempt += 1.0;
+			Point3D actual = new Point3D();
+			actual.x=tempx;actual.y=tempy;actual.t=tempt;
+			apoints.add(actual);
 			predictAndDraw(addNoise(tempx),addNoise(tempy),tempt);
 
 		}
 		for (int i=0; i < 20;i++) {
 			tempy += 2.0;
 			tempt += 1.0;
+			Point3D actual = new Point3D();
+			actual.x=tempx;actual.y=tempy;actual.t=tempt;
+			apoints.add(actual);
 			predictAndDraw(addNoise(tempx),addNoise(tempy),tempt);
 
 		}		
@@ -273,7 +293,7 @@ public class LinearFit extends JPanel{
 
 
 	private void predictAndDraw(double x, double y, double t) {
-		int fred = points.size() - 6;
+		int fred = points.size() - SAMPLES;
 		fred = (fred > 0)? fred: 0;
 		Point3D point = new Point3D();
 		point.x = x; point.y = y; point.t = t;
@@ -302,8 +322,8 @@ public class LinearFit extends JPanel{
 	    filterY.setState(y1, P0y);
 		
 		// Collect data.
-		for (int i = 0; i < 6 && i < points.size(); i++) {
-			fred = points.size() - 6+i;
+		for (int i = 0; i < SAMPLES && i < points.size(); i++) {
+			fred = points.size() - SAMPLES+i;
 			fred = (fred > 0)? fred: 0;
 			filterX.predict();
 			filterY.predict();
@@ -347,8 +367,8 @@ public class LinearFit extends JPanel{
 //		points.add(point);
 //		// Collect data.
 //		final WeightedObservedPoints obs = new WeightedObservedPoints();
-//		for (int i = 0; i < 6 && i < points.size(); i++) {
-//			int fred = points.size() - 6 +i;
+//		for (int i = 0; i < SAMPLES && i < points.size(); i++) {
+//			int fred = points.size() - SAMPLES +i;
 //			fred = (fred > 0)? fred: 0;
 //			obs.add(points.get(fred).t, points.get(fred).x);
 //
@@ -361,8 +381,8 @@ public class LinearFit extends JPanel{
 //		final double[] coeff = fitter.fit(obs.toList());
 //		// Collect data.
 //		final WeightedObservedPoints obs2 = new WeightedObservedPoints();
-//		for (int i = 0; i < 6 && i < points.size(); i++) {
-//			int fred = points.size() - 6+i;
+//		for (int i = 0; i < SAMPLES && i < points.size(); i++) {
+//			int fred = points.size() - SAMPLES+i;
 //			fred = (fred > 0)? fred: 0;
 //			obs2.add(points.get(fred).t, points.get(fred).y);
 //
@@ -402,6 +422,7 @@ public class LinearFit extends JPanel{
 				public void actionPerformed(ActionEvent e) {
 					render = true;
 					NOISE_VALUE = Double.parseDouble(minx.getText());
+					SAMPLES = Integer.parseInt(samples.getText());
 					try {
 						charlie.doASquare();
 					} catch (InterruptedException ex) {
@@ -420,6 +441,8 @@ public class LinearFit extends JPanel{
 			temp.add(maxx);
 			temp.add(minxl);		
 			temp.add(minx);
+			temp.add(samplesl);		
+			temp.add(samples);
 			temp.add(doRender);
 			//			canvas.setVisible(true);
 			jfrm.add(temp, BorderLayout.NORTH);
