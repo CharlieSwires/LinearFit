@@ -1,6 +1,5 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,10 +14,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.ejml.data.DMatrixRMaj;
@@ -201,11 +196,9 @@ public class LinearFit extends JPanel{
 	double accelNoise = 0.0d;
 	private KalmanFilterSimple filterX;
 	private KalmanFilterSimple filterY;
-	RealVector u;
 	DMatrixRMaj x1;
 	DMatrixRMaj y1;
 	DMatrixRMaj Ax;
-	RealMatrix B;
 	DMatrixRMaj Hx;
 	DMatrixRMaj Ry;
 	DMatrixRMaj Rx;
@@ -225,7 +218,7 @@ public class LinearFit extends JPanel{
 			Ax = new DMatrixRMaj(new double[][] { { 1, dt }, { 0, 1 } });
 			// B = [ dt^2/2 ]
 			//	     [ dt     ]
-			B = new Array2DRowRealMatrix(new double[][] { { Math.pow(dt, 2d) / 2d }, { dt } });
+			//B = new Array2DRowRealMatrix(new double[][] { { Math.pow(dt, 2d) / 2d }, { dt } });
 			// H = [ 1 0 ]
 			Hx = new DMatrixRMaj(new double[][] { { 1d, 0d } });
 			// x = [ 0 0 ]
@@ -244,7 +237,7 @@ public class LinearFit extends JPanel{
 			Rx = new SimpleMatrix(new double[][] {{ Math.pow(measurementNoise, 2) }}).getDDRM();
 
 			// constant control input, increase velocity by 0.1 m/s per cycle
-			u = new ArrayRealVector(new double[] { 0.0d });
+			//u = new ArrayRealVector(new double[] { 0.0d });
 
 			filterX = new KalmanFilterSimple();
 		    filterX.configure(Ax, Qx, Hx); 
@@ -261,7 +254,7 @@ public class LinearFit extends JPanel{
 			Ay = new DMatrixRMaj(new double[][] { { 1, dt }, { 0, 1 } });
 			// B = [ dt^2/2 ]
 			//	     [ dt     ]
-			B = new Array2DRowRealMatrix(new double[][] { { Math.pow(dt, 2d) / 2d }, { dt } });
+			//B = new Array2DRowRealMatrix(new double[][] { { Math.pow(dt, 2d) / 2d }, { dt } });
 			// H = [ 1 0 ]
 			Hy = new DMatrixRMaj(new double[][] { { 1d, 0d } });
 			// y = [ 0 0 ]
@@ -280,7 +273,7 @@ public class LinearFit extends JPanel{
 			Ry = new SimpleMatrix(new double[][] {{ Math.pow(measurementNoise, 2) }}).getDDRM();
 
 			// constant control input, increase velocity by 0.1 m/s per cycle
-			u = new ArrayRealVector(new double[] { 0.0d });
+			//u = new ArrayRealVector(new double[] { 0.0d });
 
 			filterY = new KalmanFilterSimple();
 		    filterY.configure(Ay, Qy, Hy); 
@@ -322,8 +315,8 @@ public class LinearFit extends JPanel{
 	    filterY.setState(y1, P0y);
 		
 		// Collect data.
-		for (int i = 0; i < SAMPLES && i < points.size(); i++) {
-			fred = points.size() - SAMPLES+i;
+		for (int i = 0; i < (SAMPLES + 1) && i < points.size(); i++) {
+			fred = points.size() -(SAMPLES + 1)+i;
 			fred = (fred > 0)? fred: 0;
 			filterX.predict();
 			filterY.predict();
@@ -423,6 +416,7 @@ public class LinearFit extends JPanel{
 					render = true;
 					NOISE_VALUE = Double.parseDouble(minx.getText());
 					SAMPLES = Integer.parseInt(samples.getText());
+
 					try {
 						charlie.doASquare();
 					} catch (InterruptedException ex) {
